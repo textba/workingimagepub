@@ -22,16 +22,17 @@ pip install -r requirements.txt
 
 ## ElevenLabs setup
 
-1. Create an ElevenLabs API key.
-2. Set it in environment (recommended):
+Use `.env` for local secrets/config:
 
-```powershell
-setx ELEVENLABS_API_KEY "your_api_key_here"
+```env
+ELEVENLABS_API_KEY=your_api_key_here
+ELEVENLABS_VOICE_ID=nPczCjzI2devNBz1zQrb
+ELEVENLABS_MODEL_ID=eleven_multilingual_v2
 ```
 
-Then open a new terminal, or paste key in-app.
+A starter `.env` is included. Fill in the API key value.
 
-Default voice ID is set to Brian:
+Default voice ID is Brian:
 - `nPczCjzI2devNBz1zQrb`
 
 ## Run

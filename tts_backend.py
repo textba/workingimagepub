@@ -4,9 +4,12 @@ from uuid import uuid4
 
 import pyttsx3
 import requests
+from dotenv import load_dotenv
 
-ELEVENLABS_DEFAULT_VOICE_ID = "nPczCjzI2devNBz1zQrb"  # Brian
-ELEVENLABS_MODEL_ID = "eleven_multilingual_v2"
+load_dotenv()
+
+ELEVENLABS_DEFAULT_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "nPczCjzI2devNBz1zQrb")  # Brian
+ELEVENLABS_MODEL_ID = os.getenv("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2")
 
 
 def synthesize(text: str, provider: str, voice_id: str | None = None, api_key: str | None = None) -> str:
