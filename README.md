@@ -1,13 +1,15 @@
 # Text-to-Speech Python App
 
-Simple desktop TTS app using `tkinter` + `pyttsx3`.
+Simple desktop TTS app using `tkinter` with two providers:
+- Local system voices via `pyttsx3`
+- ElevenLabs API (Brian voice by default)
 
 ## Features
 - Type/paste text
-- Choose installed voice
-- Adjust speaking rate + volume
-- Speak out loud
-- Save generated speech to `.wav`
+- Provider switch: `pyttsx3` or `elevenlabs`
+- Local voice selector + rate + volume controls
+- Save local speech to `.wav`
+- Save ElevenLabs speech to `.mp3`
 
 ## Setup
 
@@ -18,6 +20,20 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+## ElevenLabs setup
+
+1. Create an ElevenLabs API key.
+2. Set it in environment (recommended):
+
+```powershell
+setx ELEVENLABS_API_KEY "your_api_key_here"
+```
+
+Then open a new terminal, or paste key in-app.
+
+Default voice ID is set to Brian:
+- `nPczCjzI2devNBz1zQrb`
+
 ## Run
 
 ```bash
@@ -25,5 +41,5 @@ python tts_app.py
 ```
 
 ## Notes
-- Uses your system's installed voices.
-- On some systems, saving to file may take a few seconds.
+- `Speak` currently plays audio directly only for local (`pyttsx3`) mode.
+- ElevenLabs mode currently generates MP3 via **Save to File**.
