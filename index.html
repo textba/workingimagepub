@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nate's Bot TTS Web UI</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 820px; margin: 32px auto; padding: 0 16px; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; }
+    label { display:block; margin:10px 0 6px; font-weight: 600; }
+    textarea,input,select,button { width:100%; padding:10px; box-sizing:border-box; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    button { margin-top:12px; font-weight:700; }
+    #status { margin-top: 10px; }
+    audio { width:100%; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <h1>🐍 TTS Web UI (Flask/FastAPI)</h1>
+  <div class="card">
+    <label for="text">Text</label>
+    <textarea id="text" rows="8" placeholder="Type what you want spoken..."></textarea>
+
+    <div class="row">
+      <div>
+        <label for="provider">Provider</label>
+        <select id="provider">
+          <option value="pyttsx3">pyttsx3 (local)</option>
+          <option value="elevenlabs">elevenlabs (Brian)</option>
+        </select>
+      </div>
+      <div>
+        <label for="voice">Voice ID (ElevenLabs)</label>
+        <input id="voice" value="nPczCjzI2devNBz1zQrb" />
+      </div>
+    </div>
+
+    <label for="apiKey">ElevenLabs API Key (optional if env var is set)</label>
+    <input id="apiKey" type="password" placeholder="sk_..." />
+
+    <button id="go">Generate Audio</button>
+    <div id="status">Ready.</div>
+    <audio id="player" controls></audio>
+  </div>
+
+  <script>
+    const go = document.getElementById('go');
+    const statusEl = document.getElementById('status');
+    const player = document.getElementById('player');
+
+    go.addEventListener('click', async () => {
+      const payload = {
+        text: document.getElementById('text').value.trim(),
+        provider: document.getElementById('provider').value,
+        voice: document.getElementById('voice').value.trim(),
+        apiKey: document.getElementById('apiKey').value.trim(),
+      };
+
+      if (!payload.text) {
+        statusEl.textContent = 'Please enter text first.';
+        return;
+      }
+
+      statusEl.textContent = 'Generating...';
+
+      try {
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || data.detail || 'Request failed');
+        }
+
+        statusEl.textContent = `Saved: ${data.output_file}`;
+        player.src = data.url + `?t=${Date.now()}`;
+        player.play().catch(() => {});
+      } catch (err) {
+        statusEl.textContent = `Error: ${err.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
