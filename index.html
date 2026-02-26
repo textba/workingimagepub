@@ -1,81 +1,153 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nate's Bot TTS Web UI</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nate's Bot - Video Creator</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 820px; margin: 32px auto; padding: 0 16px; }
-    .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; }
-    label { display:block; margin:10px 0 6px; font-weight: 600; }
-    textarea,input,select,button { width:100%; padding:10px; box-sizing:border-box; }
-    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    button { margin-top:12px; font-weight:700; }
-    #status { margin-top: 10px; }
-    audio { width:100%; margin-top:10px; }
+    body { font-family: sans-serif; max-width: 980px; margin: 24px auto; padding: 0 16px; background: #f4f4f9; }
+    .card { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-bottom: 16px; }
+    textarea, input, select { width: 100%; box-sizing: border-box; padding: 10px; margin: 8px 0; }
+    .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .formats { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .item { background: #eee; border-radius: 8px; padding: 10px; }
+    video { width: 100%; background: #000; border-radius: 6px; }
+    button { padding: 10px 14px; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h1>🐍 TTS Web UI (Flask/FastAPI)</h1>
-  <div class="card">
-    <label for="text">Text</label>
-    <textarea id="text" rows="8" placeholder="Type what you want spoken..."></textarea>
+  <h1>🐍 Text → Video (v2 upgraded)</h1>
 
-    <div class="row">
-      <div>
-        <label for="provider">Provider</label>
-        <select id="provider">
-          <option value="pyttsx3">pyttsx3 (local)</option>
-          <option value="elevenlabs">elevenlabs (Brian)</option>
-        </select>
-      </div>
-      <div>
-        <label for="voice">Voice ID (ElevenLabs)</label>
-        <input id="voice" value="nPczCjzI2devNBz1zQrb" />
-      </div>
+  <div class="card">
+    <input id="title-input" type="text" placeholder="YouTube title (optional)" maxlength="100">
+    <textarea id="description-input" placeholder="YouTube description (optional)" rows="3"></textarea>
+    <input id="intro-image-input" type="file" accept="image/*">
+    <textarea id="text-input" placeholder="Paste your text/script here" rows="10"></textarea>
+
+    <div class="formats">
+      <label><input type="checkbox" class="format" value="portrait_tiktok" checked> Portrait 9:16</label>
+      <label><input type="checkbox" class="format" value="landscape_720p"> Landscape 16:9</label>
+      <label><input type="checkbox" class="format" value="square_instagram"> Square 1:1</label>
     </div>
 
-    <button id="go">Generate Audio</button>
-    <div id="status">Ready.</div>
-    <audio id="player" controls></audio>
+    <div class="controls">
+      <select id="voice-select" style="max-width:260px;">
+        <option value="pNInz6obpgDQGcFmaJgB">Adam</option>
+        <option value="ErXwobaYiN019PkySvjV">Antoni</option>
+        <option value="nPczCjzI2devNBz1zQrb" selected>Brian</option>
+      </select>
+      <button id="video-btn">Create Multi-Format Videos</button>
+      <span id="status"></span>
+    </div>
+  </div>
+
+  <div id="results" class="card" style="display:none;">
+    <h2>Generated Videos</h2>
+    <div id="video-grid" class="grid"></div>
   </div>
 
   <script>
-    const go = document.getElementById('go');
+    const textInput = document.getElementById('text-input');
+    const titleInput = document.getElementById('title-input');
+    const descriptionInput = document.getElementById('description-input');
+    const introImageInput = document.getElementById('intro-image-input');
+    const voiceSelect = document.getElementById('voice-select');
+    const videoBtn = document.getElementById('video-btn');
     const statusEl = document.getElementById('status');
-    const player = document.getElementById('player');
+    const videoGrid = document.getElementById('video-grid');
+    const results = document.getElementById('results');
 
-    go.addEventListener('click', async () => {
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    async function uploadVideo(filename, target, btn) {
+      btn.disabled = true;
+      btn.textContent = `Uploading to ${target}...`;
       const payload = {
-        text: document.getElementById('text').value.trim(),
-        provider: document.getElementById('provider').value,
-        voice: document.getElementById('voice').value.trim(),
+        filename,
+        targets: [target],
+        title: titleInput.value.trim(),
+        description: descriptionInput.value.trim(),
       };
-
-      if (!payload.text) {
-        statusEl.textContent = 'Please enter text first.';
-        return;
+      try {
+        const res = await fetch('/api/upload-video', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.youtubeUrl || data.driveUrl) {
+          btn.textContent = '✅ Uploaded';
+          btn.onclick = () => window.open(data.youtubeUrl || data.driveUrl, '_blank');
+          btn.disabled = false;
+        } else {
+          btn.textContent = '❌ Failed';
+          btn.disabled = false;
+        }
+      } catch {
+        btn.textContent = '❌ Error';
+        btn.disabled = false;
       }
+    }
 
-      statusEl.textContent = 'Generating...';
+    videoBtn.addEventListener('click', async () => {
+      const text = textInput.value.trim();
+      if (!text) return alert('No text provided');
+
+      const formats = Array.from(document.querySelectorAll('.format')).filter(x => x.checked).map(x => x.value);
+      if (!formats.length) return alert('Select at least one format');
+
+      videoBtn.disabled = true;
+      statusEl.textContent = 'Rendering...';
+      videoGrid.innerHTML = '';
+      results.style.display = 'none';
+
+      const introFile = introImageInput.files?.[0] || null;
+      const introImageData = introFile ? await fileToDataUrl(introFile) : null;
 
       try {
-        const res = await fetch('/api/tts', {
+        const res = await fetch('/api/generate-video', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            text,
+            voiceId: voiceSelect.value,
+            formats,
+            youtubeTitle: titleInput.value.trim(),
+            youtubeDescription: descriptionInput.value.trim(),
+            introImageData,
+          }),
         });
 
         const data = await res.json();
-        if (!res.ok || !data.ok) {
-          throw new Error(data.error || data.detail || 'Request failed');
+        if (!res.ok) throw new Error(data.error || 'render failed');
+
+        for (const v of data.videos) {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `
+            <h3>${v.type}</h3>
+            <video src="${v.url}" controls></video>
+            <p><a href="${v.url}" download>Download MP4</a></p>
+            <button class="yt">Upload to YouTube</button>
+            <button class="drive">Upload to Drive</button>
+          `;
+          const yt = div.querySelector('.yt');
+          const drive = div.querySelector('.drive');
+          yt.onclick = () => uploadVideo(v.filename, 'youtube', yt);
+          drive.onclick = () => uploadVideo(v.filename, 'drive', drive);
+          videoGrid.appendChild(div);
         }
 
-        statusEl.textContent = `Saved: ${data.output_file}`;
-        player.src = data.url + `?t=${Date.now()}`;
-        player.play().catch(() => {});
-      } catch (err) {
-        statusEl.textContent = `Error: ${err.message}`;
+        results.style.display = 'block';
+        statusEl.textContent = 'Done.';
+      } catch (e) {
+        statusEl.textContent = `Error: ${e.message}`;
+      } finally {
+        videoBtn.disabled = false;
       }
     });
   </script>

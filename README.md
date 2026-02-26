@@ -1,46 +1,55 @@
-# Text-to-Speech Python App
+# Nate's Bot - TTS + Video Creator
 
-Simple desktop TTS app using `tkinter` with two providers:
-- Local system voices via `pyttsx3`
-- ElevenLabs API (Brian voice by default)
+This repo now includes:
+- Desktop TTS app (`tts_app.py`)
+- Web UI + Flask API for TTS and video generation (`index.html`, `flask_app.py`)
+- FastAPI TTS endpoint (`fastapi_app.py`)
+- Multi-format text-to-video render with ElevenLabs/OpenAI/gTTS fallback
+- Optional upload helpers for YouTube, Google Drive, TikTok
 
-## Features
-- Type/paste text
-- Provider switch: `pyttsx3` or `elevenlabs`
-- Local voice selector + rate + volume controls
-- Save local speech to `.wav`
-- Save ElevenLabs speech to `.mp3`
+## Features ported from video-reader-v4 backup
+- Text -> video generation
+- Multi-format output:
+  - `portrait_tiktok` (9:16)
+  - `landscape_720p` (16:9)
+  - `square_instagram` (1:1)
+- Intro image upload and video rendering
+- Voice selection (Adam/Antoni/Brian)
+- Upload endpoint hooks for YouTube/Drive/TikTok
+- Version endpoint: `/api/version`
 
 ## Setup
 
-```bash
+```powershell
 python -m venv .venv
-# Windows PowerShell
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-## ElevenLabs setup
-
-Use `.env` for local secrets/config:
+## Environment (.env)
 
 ```env
-ELEVENLABS_API_KEY=your_api_key_here
+ELEVENLABS_API_KEY=
 ELEVENLABS_VOICE_ID=nPczCjzI2devNBz1zQrb
 ELEVENLABS_MODEL_ID=eleven_multilingual_v2
+OPENAI_API_KEY=
+
+YOUTUBE_UPLOAD_ENABLED=false
+DRIVE_UPLOAD_ENABLED=false
 ```
 
-A starter `.env` is included. Fill in the API key value.
+## Run Flask app (recommended for video)
 
-Default voice ID is Brian:
-- `nPczCjzI2devNBz1zQrb`
-
-## Run
-
-```bash
-python tts_app.py
+```powershell
+python flask_app.py
 ```
 
-## Notes
-- `Speak` currently plays audio directly only for local (`pyttsx3`) mode.
-- ElevenLabs mode currently generates MP3 via **Save to File**.
+Open: `http://127.0.0.1:5000`
+
+## Run FastAPI app (TTS API)
+
+```powershell
+uvicorn fastapi_app:app --reload --port 8000
+```
+
+Open: `http://127.0.0.1:8000`
