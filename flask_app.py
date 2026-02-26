@@ -204,7 +204,7 @@ def api_generate_video():
 
                 def make_scroll_frame(t):
                     # Slight speed boost so we reliably reach the bottom by the end.
-                    progress = 0.0 if duration <= 0 else (t / duration) * 1.08
+                    progress = 0.0 if duration <= 0 else (t / duration) * 1.17
                     progress = max(0.0, min(1.0, progress))
                     y_off = int(progress * max_offset)
                     return full_arr[y_off:y_off + h, 0:w]
