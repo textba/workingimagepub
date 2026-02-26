@@ -18,7 +18,6 @@ def api_tts():
             text=data.get('text', ''),
             provider=data.get('provider', 'pyttsx3'),
             voice_id=data.get('voice'),
-            api_key=data.get('apiKey'),
         )
         return jsonify({'ok': True, 'output_file': output_file, 'url': f"/{output_file}"})
     except Exception as e:

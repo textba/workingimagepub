@@ -10,7 +10,6 @@ class TTSRequest(BaseModel):
     text: str
     provider: str = 'pyttsx3'
     voice: str | None = None
-    apiKey: str | None = None
 
 
 app = FastAPI(title='Nate TTS API')
@@ -29,7 +28,6 @@ def api_tts(payload: TTSRequest):
             text=payload.text,
             provider=payload.provider,
             voice_id=payload.voice,
-            api_key=payload.apiKey,
         )
         return {'ok': True, 'output_file': output_file, 'url': f'/{output_file}'}
     except Exception as e:
